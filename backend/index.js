@@ -1,10 +1,12 @@
 const express = require('express');
 const fs = require('fs-extra');
 const mysql = require('mysql2');
+const cors = require('cors');
 
 const app = express();
 const PORT = 3000;
 
+app.use(cors());
 app.use(express.json());
 
 // Crear carpeta logs si no existe
