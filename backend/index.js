@@ -21,11 +21,11 @@ function logMessage(message) {
 
 // 🔌 Conexión a MySQL
 const db = mysql.createConnection({
-    host: 'localhost',
+    host: 'db',
     user: 'user',
     password: 'password',
     database: 'school_planner',
-    port: 3307
+    port: 3306
 });
 
 db.connect(err => {

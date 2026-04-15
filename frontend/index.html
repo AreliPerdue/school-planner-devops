@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>School Planner</title>
+</head>
+<body>
+
+    <h1>📚 School Planner</h1>
+
+    <h2>Agregar tarea</h2>
+
+    <input type="text" id="title" placeholder="Título"><br><br>
+    <input type="text" id="subject" placeholder="Materia"><br><br>
+    <input type="date" id="due_date"><br><br>
+
+    <button onclick="addTask()">Guardar tarea</button>
+
+    <h2>📋 Lista de tareas</h2>
+    <button onclick="loadTasks()">Cargar tareas</button>
+
+    <ul id="taskList"></ul>
+
+    <script>
+        const API_URL = "http://localhost:3000";
+
+        function addTask() {
+            const title = document.getElementById("title").value;
+            const subject = document.getElementById("subject").value;
+            const due_date = document.getElementById("due_date").value;
+
+            fetch(API_URL + "/task", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ title, subject, due_date })
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert("Tarea guardada");
+                loadTasks();
+            });
+        }
+
+        function loadTasks() {
+            fetch(API_URL + "/tasks")
+            .then(res => res.json())
+            .then(data => {
+                const list = document.getElementById("taskList");
+                list.innerHTML = "";
+
+                data.forEach(task => {
+                    const li = document.createElement("li");
+                    li.textContent = `${task.title} - ${task.subject} - ${task.due_date}`;
+                    list.appendChild(li);
+                });
+            });
+        }
+    </script>
+
+</body>
+</html>
