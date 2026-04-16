@@ -22,7 +22,8 @@
     <ul id="taskList"></ul>
 
     <script>
-        const API_URL = "http://184.72.87.105:3000";
+
+        const API_URL = window.location.protocol + "//" + window.location.hostname + ":3000";
 
         function addTask() {
             const title = document.getElementById("title").value;
