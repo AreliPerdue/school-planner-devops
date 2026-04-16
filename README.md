@@ -98,3 +98,15 @@ docker-compose up -d
 * **3307:** MySQL (mapeado desde el contenedor)
 
 ---
+
+## CloudFormation
+
+El archivo `cloudformation/template.yml` permite crear automáticamente:
+- Instancia EC2
+- Security Groups
+- Configuración inicial del entorno
+
+Para ejecutarlo:
+aws cloudformation create-stack \
+  --stack-name school-planner-stack \
+  --template-body file://cloudformation/template.yml
