@@ -14,13 +14,26 @@ services:
       - db_data:/var/lib/mysql
 
   backend:
-    build: ./backend
+    image: node:18
     container_name: backend-app
-    restart: always
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+    command: sh -c "npm install && node index.js"
     ports:
       - "3000:3000"
     depends_on:
       - db
+
+  frontend:
+    image: nginx:alpine
+    container_name: frontend-app
+    ports:
+      - "80:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html
+    depends_on:
+      - backend
 
 volumes:
   db_data:

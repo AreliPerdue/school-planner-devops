@@ -8,6 +8,7 @@ const PORT = 3000;
 
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Crear carpeta logs si no existe
 fs.ensureDirSync('./logs');
@@ -38,8 +39,24 @@ db.connect(err => {
 
 // Ruta de prueba
 app.get('/', (req, res) => {
-    logMessage('INFO: Acceso a ruta principal');
-    res.send('Backend funcionando 🚀');
+    res.send("Backend funcionando 🚀");
+});
+
+// ✏️ Actualizar tarea
+app.put('/task/:id', (req, res) => {
+    const { id } = req.params;
+    const { title, subject, due_date } = req.body;
+
+    const query = 'UPDATE tasks SET title = ?, subject = ?, due_date = ? WHERE id = ?';
+
+    db.query(query, [title, subject, due_date, id], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send('Error al actualizar tarea');
+        }
+
+        res.json({ message: 'Tarea actualizada' });
+    });
 });
 
 // 🟢 Crear tarea
@@ -73,6 +90,22 @@ app.get('/tasks', (req, res) => {
         logMessage('INFO: Consulta de tareas');
 
         res.json(results);
+    });
+});
+
+// ❌ Eliminar tarea
+app.delete('/task/:id', (req, res) => {
+    const { id } = req.params;
+
+    const query = 'DELETE FROM tasks WHERE id = ?';
+
+    db.query(query, [id], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send('Error al eliminar tarea');
+        }
+
+        res.json({ message: 'Tarea eliminada' });
     });
 });
 

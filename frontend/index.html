@@ -22,7 +22,7 @@
     <ul id="taskList"></ul>
 
     <script>
-        const API_URL = "http://localhost:3000";
+        const API_URL = "http://184.72.87.105:3000";
 
         function addTask() {
             const title = document.getElementById("title").value;
@@ -44,20 +44,72 @@
         }
 
         function loadTasks() {
-            fetch(API_URL + "/tasks")
-            .then(res => res.json())
-            .then(data => {
-                const list = document.getElementById("taskList");
-                list.innerHTML = "";
+    fetch(API_URL + "/tasks")
+    .then(res => res.json())
+    .then(data => {
+        const list = document.getElementById("taskList");
+        list.innerHTML = "";
 
-                data.forEach(task => {
-                    const li = document.createElement("li");
-                    li.textContent = `${task.title} - ${task.subject} - ${task.due_date}`;
-                    list.appendChild(li);
-                });
-            });
-        }
-    </script>
+        data.forEach(task => {
+            const li = document.createElement("li");
 
+            const fecha = new Date(task.due_date).toLocaleDateString();
+
+            li.innerHTML = `
+   		 <input value="${task.title}" id="title-${task.id}">
+   		 <input value="${task.subject}" id="subject-${task.id}">
+   	 	<input type="date" value="${task.due_date.split('T')[0]}" id="date-${task.id}">
+
+	   	 <button onclick="updateTask(${task.id})">💾</button>
+   		 <button onclick="deleteTask(${task.id})">❌</button>
+		`;
+
+            list.appendChild(li);
+        });
+    });
+}
+
+function deleteTask(id) {
+    fetch(API_URL + "/task/" + id, {
+        method: "DELETE"
+    })
+    .then(() => loadTasks());
+}
+
+function editTask(id) {
+    const title = prompt("Nuevo título:");
+    const subject = prompt("Nueva materia:");
+    const due_date = prompt("Nueva fecha (YYYY-MM-DD):");
+
+    fetch(API_URL + "/task/" + id, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ title, subject, due_date })
+    })
+    .then(() => loadTasks());
+}
+
+function updateTask(id) {
+    const title = document.getElementById(`title-${id}`).value;
+    const subject = document.getElementById(`subject-${id}`).value;
+    const due_date = document.getElementById(`date-${id}`).value;
+
+    fetch(API_URL + "/task/" + id, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ title, subject, due_date })
+    })
+    .then(res => res.json())
+    .then(() => {
+        alert("✅ Tarea actualizada exitosamente");
+        loadTasks();
+    });
+}
+
+</script>
 </body>
 </html>
