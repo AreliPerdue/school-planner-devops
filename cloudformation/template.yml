@@ -1,11 +1,36 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: EC2 instance for School Planner DevOps
+Description: School Planner DevOps EC2 Instance
 
 Resources:
+
+  MySecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow HTTP and App access
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 3000
+          ToPort: 3000
+          CidrIp: 0.0.0.0/0
+
   MyEC2Instance:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: t2.micro
       ImageId: ami-0c02fb55956c7d316
       KeyName: devops-key
+      SecurityGroupIds:
+        - !Ref MySecurityGroup
 
+      UserData:
+        Fn::Base64: |
+          #!/bin/bash
+          yum update -y
+          yum install docker -y
+          systemctl start docker
+          systemctl enable docker
+          usermod -aG docker ec2-user
