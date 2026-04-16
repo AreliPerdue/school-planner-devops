@@ -1,0 +1,78 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: School Planner DevOps FULL AUTO
+
+Resources:
+
+  MySecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow SSH, HTTP, and App
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 3000
+          ToPort: 3000
+          CidrIp: 0.0.0.0/0
+
+# Security Group permite acceso a:
+# - Puerto 22 (SSH)
+# - Puerto 80 (Frontend)
+# - Puerto 3000 (Backend)
+# Nota: 0.0.0.0/0 se usa solo para pruebas
+
+  MyEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-0c02fb55956c7d316
+      KeyName: devops-key
+      SecurityGroupIds:
+        - !Ref MySecurityGroup
+
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          yum update -y
+
+          yum install -y docker git
+
+          systemctl start docker
+          systemctl enable docker
+          usermod -aG docker ec2-user
+
+          curl -L https://github.com/docker/compose/releases/download/v2.27.0/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
+          chmod +x /usr/local/bin/docker-compose
+
+          yum install -y cronie
+          systemctl start crond
+          systemctl enable crond
+
+          cd /home/ec2-user
+          git clone https://github.com/AreliPerdue/school-planner-devops.git
+          cd school-planner-devops
+
+          docker-compose up -d
+
+          sleep 60
+
+          docker exec mysql-db mysql -u user -ppassword -e "
+          CREATE DATABASE IF NOT EXISTS school_planner;
+          USE school_planner;
+          CREATE TABLE IF NOT EXISTS tasks (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            title VARCHAR(255),
+            subject VARCHAR(255),
+            due_date DATE
+          );
+          "
+
+          echo "0 8 * * * cd /home/ec2-user/school-planner-devops && docker-compose up -d" >> /var/spool/cron/ec2-user
+          echo "0 23 * * * cd /home/ec2-user/school-planner-devops && docker-compose down" >> /var/spool/cron/ec2-user
+          */60 * * * * aws s3 cp /home/ec2-user/school-planner-devops/backend/logs/app.log s3://school-planner-logs-al03072223/
